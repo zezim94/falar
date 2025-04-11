@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>FalaTexto Avançado</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 30px;
+            background-color: #f8f9fa;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .form-select,
+        .form-control {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body class="container">
+    <h1 class="mb-4 text-center">🗣️ Fale o que quiser</h1>
+    <form method="POST" class="border p-4 bg-white rounded shadow-sm">
+        <div class="mb-3">
+            <label class="form-label">Texto para falar</label>
+            <textarea class="form-control" id="texto" name="texto"
+                placeholder="Digite ou use o microfone...">{{ request.form.texto or '' }}</textarea>
+            <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="iniciarReconhecimento()">🎙️ Usar
+                microfone</button>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label">Idioma</label>
+                <select class="form-select" name="idioma">
+                    <option value="pt" {% if request.form.idioma=='pt' %}selected{% endif %}>Português</option>
+                    <option value="en" {% if request.form.idioma=='en' %}selected{% endif %}>Inglês</option>
+                    <option value="es" {% if request.form.idioma=='es' %}selected{% endif %}>Espanhol</option>
+                    <option value="fr" {% if request.form.idioma=='fr' %}selected{% endif %}>Francês</option>
+                </select>
+            </div>
+            <div class="col">
+                <label class="form-label">Voz</label>
+                <select class="form-select" name="voz">
+                    <option value="feminina" {% if request.form.voz=='feminina' %}selected{% endif %}>Feminina (online)
+                    </option>
+                    <option value="masculina" {% if request.form.voz=='masculina' %}selected{% endif %}>Masculina
+                        (local)</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">🔊 Falar</button>
+    </form>
+
+    {% if audio_file %}
+    <div class="mt-4">
+        <h4>▶️ Último áudio gerado:</h4>
+        <audio controls autoplay>
+            <source src="{{ url_for('serve_audio', filename=audio_file) }}" type="audio/mp3">
+            Seu navegador não suporta áudio.
+        </audio>
+    </div>
+    {% endif %}
+
+    {% if audios %}
+    <div class="mt-4">
+        <h5>🎧 Áudios anteriores:</h5>
+        <ul class="list-group">
+            {% for a in audios %}
+            <li class="list-group-item">
+                <a href="{{ url_for('serve_audio', filename=a) }}" target="_blank">{{ a }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <script>
+        function iniciarReconhecimento() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'pt-BR';
+            recognition.start();
+            recognition.onresult = function (event) {
+                document.getElementById('texto').value = event.results[0][0].transcript;
+            };
+        }
+    </script>
+</body>
+
+</html>
